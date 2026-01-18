@@ -5,37 +5,40 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class GeneralSettings(BaseSettings):
     APP_NAME: str = "Tenant Management App REST API"
     TIMEZONE: str = "Asia/Kolkata"
-    SECRET_KEY: str = os.environ.get("SECRET_KEY")
-    ACCESS_TOKEN_EXPIRE_TIMEDELTA: str = os.environ.get("ACCESS_TOKEN_EXPIRE_TIMEDELTA")
-    REFRESH_TOKEN_EXPIRE_TIMEDELTA: str = os.environ.get(
-        "REFRESH_TOKEN_EXPIRE_TIMEDELTA"
-    )
-    FRONTEND_URL: str = os.environ.get("FRONTEND_URL")
+    SECRET_KEY: str
+    FRONTEND_URL: str
 
 
 class DatabaseSettings(BaseSettings):
-    DATABASE_URL: str = os.environ.get("DATABASE_URL")
+    DATABASE_URL: str
+
+
+class JWTSettings(BaseSettings):
+    ACCESS_TOKEN_EXPIRE_TIMEDELTA: int
+    REFRESH_TOKEN_EXPIRE_TIMEDELTA: int
+    ALGO: str
 
 
 class MediaStorageSettings(BaseSettings):
-    DOCUMENT_FOLDER: str = os.environ.get("DOCUMENT_FOLDER")
+    DOCUMENT_FOLDER: str
 
 
 class CloudinarySettings(BaseSettings):
-    CLOUD_NAME: str = os.environ.get("CLOUD_NAME")
-    API_KEY: str = os.environ.get("API_KEY")
-    API_SECRET: str = os.environ.get("API_SECRET")
+    CLOUD_NAME: str
+    API_KEY: str
+    API_SECRET: str
 
 
 class CloudflareR2Settings(BaseSettings):
-    R2_ACCESS_KEY_ID: str = os.environ.get("R2_ACCESS_KEY_ID")
-    R2_SECRET_ACCESS_KEY: str = os.environ.get("R2_SECRET_ACCESS_KEY")
-    R2_ENDPOINT_URL: str = os.environ.get("R2_ENDPOINT_URL")
+    R2_ACCESS_KEY_ID: str
+    R2_SECRET_ACCESS_KEY: str
+    R2_ENDPOINT_URL: str
 
 
 class Settings(
     GeneralSettings,
     DatabaseSettings,
+    JWTSettings,
     CloudinarySettings,
     CloudflareR2Settings,
     MediaStorageSettings,

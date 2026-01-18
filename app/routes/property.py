@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Depends, Security
+from fastapi import APIRouter, Depends
 from uuid import UUID
 from typing import List
-from fastapi_jwt import JwtAuthorizationCredentials
-from app.security.jwt import access_security
 from app.core.dependencies import get_property_service
 from app.security.dependencies import get_current_user_id
 from app.schemas import PropertyIn, PropertyPatch, PropertyOut

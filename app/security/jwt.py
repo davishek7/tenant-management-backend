@@ -1,29 +1,52 @@
-from datetime import timedelta
-from fastapi import Response
+import jwt
+from uuid import uuid4
+from fastapi import status
+from datetime import datetime, timedelta, timezone
 from app.core.settings import settings
-from fastapi_jwt import JwtAccessCookie, JwtRefreshCookie
+from app.exceptions.custom_exception import AppException
 
 
-access_security = JwtAccessCookie(
-    settings.SECRET_KEY,
-    auto_error=True,
-    access_expires_delta=timedelta(minutes=int(settings.ACCESS_TOKEN_EXPIRE_TIMEDELTA)),
-)
-
-refresh_security = JwtRefreshCookie(
-    settings.SECRET_KEY,
-    auto_error=True,
-    refresh_expires_delta=timedelta(days=int(settings.REFRESH_TOKEN_EXPIRE_TIMEDELTA)),
+COOKIE_BASE = dict(
+    httponly=True,
+    secure=True,  # True in prod (HTTPS)
+    samesite="none",
+    path="/",
 )
 
 
-async def generate_and_set_auth_tokens(response: Response, sub: dict) -> None:
-    access_token = access_security.create_access_token(sub)
-    refresh_token = refresh_security.create_refresh_token(sub)
-    access_security.set_access_cookie(response, access_token)
-    refresh_security.set_refresh_cookie(response, refresh_token)
+def new_jti() -> str:
+    return str(uuid4())
 
 
-async def logout_and_remove_auth_tokens(response: Response) -> None:
-    access_security.unset_access_cookie(response)
-    refresh_security.unset_refresh_cookie(response)
+def create_access_token(user_id: str) -> str:
+    payload = {
+        "sub": str(user_id),
+        "type": "access",
+        "exp": datetime.now(timezone.utc)
+        + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_TIMEDELTA),
+        "iat": datetime.now(timezone.utc),
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGO)
+
+
+def create_refresh_token(user_id: str, jti: str) -> str:
+    payload = {
+        "sub": str(user_id),
+        "jti": jti,
+        "type": "refresh",
+        "exp": datetime.now(timezone.utc)
+        + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_TIMEDELTA),
+        "iat": datetime.now(timezone.utc),
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGO)
+
+
+def decode_token(token: str) -> dict:
+    try:
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=settings.ALGO)
+    except jwt.exceptions.ExpiredSignatureError:
+        raise AppException("Token expired", status.HTTP_401_UNAUTHORIZED)
+    except jwt.exceptions.DecodeError:
+        raise AppException("Malformed token", status.HTTP_401_UNAUTHORIZED)
+    except jwt.exceptions.InvalidTokenError:
+        raise AppException("Invalid token", status.HTTP_401_UNAUTHORIZED)

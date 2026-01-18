@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Depends, Security, Response
-from fastapi_jwt import JwtAuthorizationCredentials
+from fastapi import APIRouter, Depends, Request, Response, Security
 from app.schemas import LoginSchema, RegisterSchema
 from app.core.dependencies import get_auth_service
-from app.security.jwt import access_security, refresh_security
 
 
 router = APIRouter()
@@ -14,8 +12,7 @@ async def login(
     login_schema: LoginSchema,
     auth_service=Depends(get_auth_service),
 ):
-    await auth_service.login(response, login_schema)
-    return {"message": "Login successful"}
+    return await auth_service.login(response, login_schema)
 
 
 @router.post("/register")
@@ -27,18 +24,17 @@ async def register(
 
 @router.post("/refresh")
 async def refresh(
+    request: Request,
     response: Response,
     auth_service=Depends(get_auth_service),
-    credentials: JwtAuthorizationCredentials = Security(refresh_security),
 ):
-    sub = credentials.subject
-    return await auth_service.refresh(response, sub)
+    return await auth_service.refresh(request, response)
 
 
 @router.post("/logout")
 async def logout(
+    request: Request,
     response: Response,
     auth_service=Depends(get_auth_service),
 ):
-    await auth_service.logout(response)
-    return {"message": "Logged out"}
+    return await auth_service.logout(request, response)

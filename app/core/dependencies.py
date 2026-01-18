@@ -23,6 +23,7 @@ from app.models import (
     Expense,
     TenantDocument,
     Adjustment,
+    RefreshToken,
 )
 
 
@@ -31,7 +32,7 @@ async def get_user_service() -> UserService:
 
 
 async def get_auth_service() -> AuthService:
-    return AuthService(model=User)
+    return AuthService(model=User, refresh_token_model=RefreshToken)
 
 
 async def get_property_service() -> PropertyService:

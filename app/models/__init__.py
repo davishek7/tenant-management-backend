@@ -8,3 +8,4 @@ from .expense import Expense
 from .utility_bill import UtilityBill
 from .document import TenantDocument
 from .adjustment import Adjustment
+from .refresh_token import RefreshToken
